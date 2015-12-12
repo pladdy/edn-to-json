@@ -13,14 +13,17 @@
       (e/read-string (slurp file))
       (catch Exception e false))))
 
-;; TODO: design functionality here with the options
 (def cli-options
   [["-e" "--edn-file" "EDN file to convert to JSON"
     :default nil
     :validate [is-edn-file? "File required"]]
+   ["-o" "--output" "File to output JSON to; defaults to STDOUT"
+    :default nil]
    ["-h" "--help"]])
 
 (defn -main
   "Launches a command line tool that will convert an edn file to json."
   [& args]
-  (println (parse-opts args cli-options)))
+  (let [{:keys [options arguments errors summary] :as parsed-opts}
+          (parse-opts args cli-options)]
+    (println parsed-opts)))
