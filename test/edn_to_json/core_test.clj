@@ -6,7 +6,9 @@
 (def not-nil? (complement nil?))
 
 (deftest edn->json-test
-  (testing "edn text is converted to json"))
+  (testing "edn text is converted to json"
+    (is (= "{\"foo\":\"bar\"}"
+           (ej/edn->json "{:foo :bar}")) "  edn doesn't convert to json")))
 
 (deftest is-edn-file-test
   (let [test-edn-file "is-edn-file-test.edn"]
