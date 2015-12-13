@@ -71,8 +71,6 @@
   [& args]
   (let [{:keys [options arguments errors summary] :as parsed-opts}
           (parse-opts args cli-options)]
-    ;; TODO: remove this when done
-    (println parsed-opts)
     (cond
       errors (exit 1 (error-message errors))
       (nil? (:input options)) (exit 1 (usage summary))
