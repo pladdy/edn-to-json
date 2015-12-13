@@ -2,21 +2,23 @@
   (:require [clojure.tools.cli :refer [parse-opts]]
             [clojure.java.io :as io]
             [clojure.string :as st]
-            [clojure.edn :as e])
+            [clojure.edn :as e]
+            [cheshire.core :as ch])
   (:gen-class))
 
 ;; keep functions public in case this gets used as a library instead of cli
 
 (defn edn->json
   "Take edn input and ouput json to the given output"
-  [input output]
-  ())
+  [input]
+  (let [content (if (.isFile (io/file input)) (slurp input) input)]
+    (ch/generate-string (e/read-string content))))
 
 (defn is-edn-file?
   "Given a file-string, make sure it exists and that it's an edn file"
   [file]
   (and
-    (.exists (io/file file))
+    (.isFile (io/file file))
     (try
       (do (e/read-string (slurp file)) true)
       (catch Exception e false))))
@@ -31,8 +33,8 @@
 (def cli-options
   [["-i" "--input INPUT" "Input to parse; defaults to STDIN but can also take an EDN file"
     :default nil
-    :validate [#(or (is-edn-file? %) (is-edn? %)) "EDN file or input is required"]]
-   ["-o" "--output" "File to output JSON to; defaults to STDOUT"
+    :validate [#(or (is-edn-file? %) (is-edn? %)) "Valid EDN file or input is required"]]
+   ["-o" "--output OUTPUT" "File to output JSON to; defaults to STDOUT"
     :default nil]
    ["-h" "--help"]])
 
@@ -50,6 +52,13 @@
 
 ;; private
 
+(defn- error-message
+  "Return an error message"
+  [errors]
+  (str "The following errors occured:\n"
+       (st/join \newline errors)
+       ""))
+
 (defn- exit
   "Exit with a message"
   ([status] (exit status nil))
@@ -65,8 +74,12 @@
     ;; TODO: remove this when done
     (println parsed-opts)
     (cond
+      errors (exit 1 (error-message errors))
       (nil? (:input options)) (exit 1 (usage summary))
       (:help options) (exit 0 (usage summary)))
     ;; convert the edn to json
-    (edn->json (:input options) (:output options))))
+    (let [json-content (edn->json (:input options))]
+      (if (nil? (:output options))
+        (println json-content)
+        (spit (:output options) json-content)))))
 
