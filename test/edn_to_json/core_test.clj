@@ -5,11 +5,18 @@
 
 (def not-nil? (complement nil?))
 
+(deftest edn->json-test
+  (testing "edn text is converted to json"))
+
 (deftest is-edn-file-test
-  (testing "a given file is edn"
-    (let [test-edn-file "is-edn-file-test.edn"]
+  (let [test-edn-file "is-edn-file-test.edn"]
+    (testing "an edn file"
       (spit test-edn-file "{:foo :bar}")
       (is (ej/is-edn-file? test-edn-file) "  file should be edn format")
+      (io/delete-file test-edn-file))
+    (testing "a non edn file"
+      (spit test-edn-file "{:foo :bar")
+      (is (not (ej/is-edn-file? test-edn-file)) "  file should not be edn format")
       (io/delete-file test-edn-file))))
 
 (deftest usage-test
